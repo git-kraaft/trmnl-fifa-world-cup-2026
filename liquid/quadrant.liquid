@@ -1,0 +1,52 @@
+{% assign url_base_orig = "crests.football-data.org" %}
+{% assign img_url_base = "www.zeugs.ch/d/cdn-wc2026" %}
+{% assign img_extn = ".svg" %}
+{% assign my_team = trmnl.plugin_settings.custom_fields_values.my_team | upcase %}
+{% assign date_1 = "now" | date: "%s" %}
+{% assign start_date = IDX_0.season.startDate | date: "%s" %}
+{% assign difference_seconds = start_date | minus: date_1 %}
+{% assign days_difference = difference_seconds | plus: 86399 | divided_by: 86400 %}
+{% for group in IDX_0.standings %}
+  {% for row in group.table %}
+    {% if row.team.tla == my_team %}
+      {% assign group_name = group.group %}
+      {% assign selected_table = group.table %}
+    {% endif %}
+  {% endfor%}
+{% endfor %}
+{% assign sorted_table = selected_table | sort: "position" %}
+
+{% if days_difference > 1%}
+  {% assign match_day = "World Cup starts in " | append: days_difference | append: " days..." %}
+{% elsif days_difference == 1 %}
+  {% assign match_day = "World Cup starts in " | append: days_difference | append: " day..." %}
+{% else %}
+  {% assign match_day = "Current match day: " | append: IDX_0.season.currentMatchday %}
+{% endif %}
+
+<div class="layout layout--top">
+  <div class="columns">
+    <div class="column" data-overflow="true" data-overflow-counter="true">
+      <div class="grid grid--cols-7">
+        <div class="col--span-7 border--h-3 title">{{ group_name }}, {{ match_day }}</div>
+        <div class="col label--small">POSITION</div>
+        <div class="col label--small"></div>
+        <div class="col--span-3 label--small">COUNTRY</div>
+        <div class="col label--small">POINTS</div>
+        <div class="col label--small">GAMES</div>
+
+        {% for row in sorted_table %}
+          {% assign crest_url = row.team.crest | replace: url_base_orig,img_url_base %}
+          <div class="col label layout--center outline">{{ row.position }}</div>
+          <div class="col">
+            <img class="image image-dither h--7" src="{{ crest_url }}">
+          </div>
+          <div class="col--span-3 label">{{ row.team.name }}</div>
+          <div class="col label layout--center">{{ row.points }}</div>
+          <div class="col label layout--center">{{ row.playedGames }}</div>
+        {% endfor %}
+
+      </div>
+    </div>
+  </div>
+</div>

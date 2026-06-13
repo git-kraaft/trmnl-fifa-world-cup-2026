@@ -22,6 +22,7 @@
 {% endfor %}
 {% assign sorted_table = selected_table | sort: "position" %}
 {% assign group_id = group_name | upcase | replace: " ", "_" %}
+{% assign max_matches = 2 %} <!-- for TRMNL OG -->
 
 <div class="layout layout--top">
   <div class="columns">
@@ -55,31 +56,50 @@
         <div class="col--span-3 label--small">HOME TEAM</div>
         <div class="col--span-3 label--small">AWAY TEAM</div>
         <div class="col--span-2 label--small">SCORE</div>
-        {% assign count = 0 | plus: 1 %}
+        {% assign match_count = 0 | plus: 1 %}
         {% for match in IDX_1.matches %}
           {% if match.group == group_id %}
-            {% assign count = 0 | plus: 1 %}
+            {% assign match_count = match_count | plus: 1 %}
             {% assign crest_url_h = match.homeTeam.crest | replace: url_base_orig,img_url_base %}
             {% assign crest_url_a = match.awayTeam.crest | replace: url_base_orig,img_url_base %}
 
-            <div class="col--span-2 label">{{ match.utcDate | date: "%s" | plus: trmnl.user.utc_offset | date: "%d.%m.%y %H:%M" }}</div>
-            <div class="col--span-3 label">
-              {{ match.homeTeam.tla }}&nbsp;
-              <img class="image rounded image-dither h--8" src="{{ crest_url_h }}">
-            </div>
-            <div class="col--span-3 label">
-              {{ match.awayTeam.tla }}&nbsp;
-              <img class="image rounded image-dither h--8" src="{{ crest_url_a }}">
-            </div>
-            {% if match.score.fullTime.home != Null %}
-              <div class="col--span-2 layout--center label">{{ match.score.fullTime.home }} : {{ match.score.fullTime.away }}</div>
-            {% elsif match.score.halfTime.home != Null %}
-              <div class="col--span-2 layout--center label">{{ match.score.halfTime.home }} : {{ match.score.halfTime.away }}</div>
+            {% if match_count <= max_matches %}
+              <div class="col--span-2 label">{{ match.utcDate | date: "%s" | plus: trmnl.user.utc_offset | date: "%d.%m.%y %H:%M" }}</div>
+              <div class="col--span-3 label">
+                {{ match.homeTeam.tla }}&nbsp;
+                <img class="image rounded image-dither h--8" src="{{ crest_url_h }}">
+              </div>
+              <div class="col--span-3 label">
+                {{ match.awayTeam.tla }}&nbsp;
+                <img class="image rounded image-dither h--8" src="{{ crest_url_a }}">
+              </div>
+              {% if match.score.fullTime.home != Null %}
+                <div class="col--span-2 layout--center label">{{ match.score.fullTime.home }} : {{ match.score.fullTime.away }}</div>
+              {% elsif match.score.halfTime.home != Null %}
+                <div class="col--span-2 layout--center label">{{ match.score.halfTime.home }} : {{ match.score.halfTime.away }}</div>
+              {% else %}
+                <div class="col--span-2 layout--center label">-- : --</div>
+              {% endif %}
+
+              <!-- TRMNL X only -->
             {% else %}
-              <div class="col--span-2 layout--center label">-- : --</div>
-            {% endif %}
-            {% if count == 2 %}
-              {% break %}
+              <div class="col--span-2 label sm:hidden lg:visible">{{ match.utcDate | date: "%s" | plus: trmnl.user.utc_offset | date: "%d.%m.%y %H:%M" }}</div>
+              <div class="col--span-3 label sm:hidden lg:visible">
+                {{ match.homeTeam.tla }}&nbsp;
+                <img class="image rounded image-dither h--8" src="{{ crest_url_h }}">
+              </div>
+              <div class="col--span-3 label sm:hidden lg:visible">
+                {{ match.awayTeam.tla }}&nbsp;
+                <img class="image rounded image-dither h--8" src="{{ crest_url_a }}">
+              </div>
+              {% if match.score.fullTime.home != Null %}
+                <div class="col--span-2 layout--center label sm:hidden lg:visible">{{ match.score.fullTime.home }} : {{ match.score.fullTime.away }}</div>
+              {% elsif match.score.halfTime.home != Null %}
+                <div class="col--span-2 layout--center label sm:hidden lg:visible">{{ match.score.halfTime.home }} : {{ match.score.halfTime.away }}</div>
+              {% else %}
+                <div class="col--span-2 layout--center label sm:hidden lg:visible">-- : --</div>
+              {% endif %}
+
             {% endif %}
           {% endif %}
         {% endfor %}

@@ -22,6 +22,7 @@
 {% endfor %}
 {% assign sorted_table = selected_table | sort: "position" %}
 {% assign group_id = group_name | upcase | replace: " ", "_" %}
+{% assign max_matches = 3 %}
 
 <div class="layout layout--top">
   <div class="columns">
@@ -34,7 +35,7 @@
         <div class="col--span-3 label--small">COUNTRY</div>
         <div class="col label--small">POINTS</div>
         <div class="col label--small">GAMES</div>
-  
+
         {% for row in sorted_table %}
           {% assign crest_url = row.team.crest | replace: url_base_orig,img_url_base %}
           <div class="col label layout--center outline">{{ row.position }}</div>
@@ -44,7 +45,7 @@
           <div class="col--span-3 label">{{ row.team.name }}</div>
           <div class="col label layout--center">{{ row.points }}</div>
           <div class="col label layout--center">{{ row.playedGames }}</div>
-    
+
           <div class="col--span-2 label--small"></div>
           <div class="col label--small">won {{ row.won }}</div>
           <div class="col label--small">draw {{ row.draw }}</div>
@@ -68,8 +69,10 @@
           <div class="col--span-3 label--small">HOME TEAM</div>
           <div class="col--span-3 label--small">AWAY TEAM</div>
           <div class="col--span-2 label--small">SCORE</div>
+          {% assign match_count = 0 %}
           {% for match in IDX_1.matches %}
             {% if match.group == group_id %}
+              {% assign match_count = match_count | plus: 1 %}
               {% assign crest_url_h = match.homeTeam.crest | replace: url_base_orig,img_url_base %}
               {% assign crest_url_a = match.awayTeam.crest | replace: url_base_orig,img_url_base %}
               <div class="col--span-2 label">{{ match.utcDate | date: "%s" | plus: trmnl.user.utc_offset | date: "%d.%m.%y %H:%M" }}</div>
@@ -89,6 +92,7 @@
                 <div class="col--span-2 layout--center label">-- : --</div>
               {% endif %}
 
+              <!-- TRMNL X only -->
               {% assign ref_size = match.referees | size %}
               <div class="col--span-2 label--small sm:hidden lg:visible"></div>
               <div class="col--span-3 label--small sm:hidden lg:visible">Referees</div>
@@ -106,26 +110,44 @@
                 <div class="col--span-10 label--small sm:hidden lg:visible"></div>
               {% endif %}
 
+              {% if match_count == max_matches %}
+                {% break %}
+              {% endif %}
             {% endif %}
           {% endfor %}
+
           <div class="col--span-10 label">&nbsp;</div>
           <div class="col--span-10 border--h-3 title">Scorers</div>
+          {% assign scorer_surplus = max_matches | minus: match_count %}
+          {% assign max_scorers = 5 | plus: scorer_surplus %}
           {% assign count = 0 %}
           {% for scorer in IDX_2.scorers %}
             {% assign count = count | plus: 1 %}
-            <div class="col--span-4 label">
-              {% if scorer.team.tla == my_team %}
-                <div class="rounded--xsmall px--1 bg--gray-20 text--white">
+            {% if count <= max_scorers %}
+              <div class="col--span-4 label">
+                {% if scorer.team.tla == my_team %}
+                  <div class="rounded--xsmall px--1 bg--gray-20 text--white">
+                    {{ scorer.player.name }}
+                  </div>
+                {% else %}
                   {{ scorer.player.name }}
-                </div>  
-              {% else %}
-                {{ scorer.player.name }}
-              {% endif %}
-            </div>
-            <div class="col--span-4 label">{{ scorer.team.name }}</div>
-            <div class="col--span-2 label">{{ scorer.goals }}</div>
-            {% if count == 5 %}
-              {% break %}
+                {% endif %}
+              </div>
+              <div class="col--span-4 label">{{ scorer.team.name }}</div>
+              <div class="col--span-2 label">{{ scorer.goals }}</div>
+            <!-- TRMNLX only -->
+            {% else %}
+              <div class="col--span-4 label sm:hidden lg:visible">
+                {% if scorer.team.tla == my_team %}
+                  <div class="rounded--xsmall px--1 bg--gray-20 text--white">
+                    {{ scorer.player.name }}
+                  </div>
+                {% else %}
+                  {{ scorer.player.name }}
+                {% endif %}
+              </div>
+              <div class="col--span-4 label sm:hidden lg:visible">{{ scorer.team.name }}</div>
+              <div class="col--span-2 label sm:hidden lg:visible">{{ scorer.goals }}</div>
             {% endif %}
           {% endfor %}
       </div>

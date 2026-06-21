@@ -81,7 +81,7 @@
                 <div class="col--span-2 layout--center label">-- : --</div>
               {% endif %}
 
-              <!-- TRMNL X only -->
+            <!-- TRMNL X only -->
             {% else %}
               <div class="col--span-2 label sm:hidden lg:visible">{{ match.utcDate | date: "%s" | plus: trmnl.user.utc_offset | date: "%d.%m.%y %H:%M" }}</div>
               <div class="col--span-3 label sm:hidden lg:visible">

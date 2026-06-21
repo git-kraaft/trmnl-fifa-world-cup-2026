@@ -1,0 +1,182 @@
+{% assign url_base_orig = "crests.football-data.org" %}
+{% assign img_url_base = "www.zeugs.ch/d/cdn-wc2026" %}
+{% assign my_team = trmnl.plugin_settings.custom_fields_values.my_team | upcase %}
+{% assign date_1 = "now" | date: "%s" %}
+{% assign start_date = IDX_0.season.startDate | date: "%s" %}
+{% assign difference_seconds = start_date | minus: date_1 %}
+{% assign days_difference = difference_seconds | plus: 86399 | divided_by: 86400 %}
+{% if days_difference > 1%}
+  {% assign match_day = "World Cup starts in " | append: days_difference | append: " days..." %}
+{% elsif days_difference == 1 %}
+  {% assign match_day = "World Cup starts in " | append: days_difference | append: " day..." %}
+{% else %}
+  {% assign match_day = "Current match day: " | append: IDX_0.season.currentMatchday %}
+{% endif %}
+{% for group in IDX_0.standings %}
+  {% for row in group.table %}
+    {% if row.team.tla == my_team %}
+      {% if group.group != "" %}
+        {% assign group_name = group.group %}
+      {% else %}
+        {% assign finals = group.stage | replace: "_", " " %} %}
+      {% endif %}
+      {% assign selected_table = group.table %}
+    {% endif %}
+  {% endfor%}
+{% endfor %}
+
+{% for match in IDX_1.matches %}
+  {% if match.stage != "GROUP_STAGE" %}
+    {% if match.homeTeam.tla == my_team || match.awayTeam.tla == my_team %}
+      {% assign my_next_finals_match = match %}
+    {% endif %}
+  {% endif %}
+
+
+{% endfor %}
+{% assign sorted_table = selected_table | sort: "position" %}
+{% assign group_id = group_name | upcase | replace: " ", "_" %}
+{% assign max_matches = 3 %}
+
+<div class="layout layout--top">
+  <div class="columns">
+    <div class="column" data-overflow="true" data-overflow-counter="true">
+      {% if group_name != "" %}
+        <div class="grid grid--cols-7">
+          <div class="col--span-7 border--h-3 title">{{ group_name }}</div>
+          <div class="col--span-7 label">&nbsp;</div>
+          <div class="col label--small">POSITION</div>
+          <div class="col label--small"></div>
+          <div class="col--span-3 label--small">COUNTRY</div>
+          <div class="col label--small">POINTS</div>
+          <div class="col label--small">GAMES</div>
+    
+          {% for row in sorted_table %}
+            {% assign crest_url = row.team.crest | replace: url_base_orig,img_url_base %}
+            <div class="col label layout--center outline">{{ row.position }}</div>
+            <div class="col">
+              <img class="image image-dither h--8" src="{{ crest_url }}">
+            </div>
+            <div class="col--span-3 label">{{ row.team.name }}</div>
+            <div class="col label layout--center">{{ row.points }}</div>
+            <div class="col label layout--center">{{ row.playedGames }}</div>
+  
+            <div class="col--span-2 label--small"></div>
+            <div class="col label--small">won {{ row.won }}</div>
+            <div class="col label--small">draw {{ row.draw }}</div>
+            <div class="col label--small">lost {{ row.lost }}</div>
+            <div class="col--span-2 label--small">goal difference {{ row.goalDifference }}</div>
+            <div class="col--span-7 label--small"></div>
+          {% endfor %}
+  
+        </div>
+      {% elsif "" != "" %}
+
+      {% else %}
+        
+          <div class="label--small">Unfortunately your favorite team is longer part of the tournament...</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="divider--v"></div>
+
+  <div class="columns">
+    <div class="column" data-overflow="true" data-overflow-counter="true">
+      <div class="grid grid--cols-10">
+        <div class="col--span-10 border--h-3 title">{{ match_day }}</div>
+          <div class="col--span-10 label"></div>
+          <div class="col--span-2 label--small">DATE</div>
+          <div class="col--span-3 label--small">HOME TEAM</div>
+          <div class="col--span-3 label--small">AWAY TEAM</div>
+          <div class="col--span-2 label--small">SCORE</div>
+          {% assign match_count = 0 %}
+          {% for match in IDX_1.matches %}
+            {% if match.group == group_id %}
+              {% assign match_count = match_count | plus: 1 %}
+              {% assign crest_url_h = match.homeTeam.crest | replace: url_base_orig,img_url_base %}
+              {% assign crest_url_a = match.awayTeam.crest | replace: url_base_orig,img_url_base %}
+              <div class="col--span-2 label">{{ match.utcDate | date: "%s" | plus: trmnl.user.utc_offset | date: "%d.%m.%y %H:%M" }}</div>
+              <div class="col--span-3 label">
+                {{ match.homeTeam.tla }}&nbsp;
+                <img class="image rounded image-dither h--8" src="{{ crest_url_h }}">
+              </div>
+              <div class="col--span-3 label">
+                {{ match.awayTeam.tla }}&nbsp;
+                <img class="image rounded image-dither h--8" src="{{ crest_url_a }}">
+              </div>
+              {% if match.score.fullTime.home != nil %}
+                <div class="col--span-2 layout--center label">{{ match.score.fullTime.home }} : {{ match.score.fullTime.away }}</div>
+              {% elsif match.score.halfTime.home != nil %}
+                <div class="col--span-2 layout--center label">{{ match.score.halfTime.home }} : {{ match.score.halfTime.away }}</div>
+              {% else %}
+                <div class="col--span-2 layout--center label">-- : --</div>
+              {% endif %}
+
+              <!-- TRMNL X only -->
+              {% assign ref_size = match.referees | size %}
+              <div class="col--span-2 label--small sm:hidden lg:visible"></div>
+              <div class="col--span-3 label--small sm:hidden lg:visible">Referees</div>
+              {% if ref_size > 0 %}
+                {% assign is_first_line = true %}
+                {% for ref in match.referees %}
+                  {% if is_first_line == false %}
+                    <div class="col--span-5 label--small sm:hidden lg:visible"></div>
+                  {% endif %}
+                  <div class="col--span-5 label--small sm:hidden lg:visible">{{ ref.name }}</div>
+                  {% assign is_first_line = false %}
+                {% endfor %}
+              {% else %}
+                <div class="col--span-5 label--small sm:hidden lg:visible"></div>
+                <div class="col--span-10 label--small sm:hidden lg:visible"></div>
+              {% endif %}
+
+              {% if match_count == max_matches %}
+                {% break %}
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+          
+          <div class="col--span-10 label">&nbsp;</div>
+          <div class="col--span-10 border--h-3 title">Scorers</div>
+          {% assign scorer_surplus = max_matches | minus: match_count %}
+          {% assign max_scorers = 5 | plus: scorer_surplus %}
+          {% assign count = 0 %}
+          {% for scorer in IDX_2.scorers %}
+            {% assign count = count | plus: 1 %}
+            {% if count <= max_scorers %}
+              <div class="col--span-4 label">
+                {% if scorer.team.tla == my_team %}
+                  <div class="rounded--xsmall px--1 bg--gray-20 text--white">
+                    {{ scorer.player.name }}
+                  </div>  
+                {% else %}
+                  {{ scorer.player.name }}
+                {% endif %}
+              </div>
+              <div class="col--span-4 label">{{ scorer.team.name }}</div>
+              <div class="col--span-2 label">{{ scorer.goals }}</div>
+            <!-- TRMNLX only -->
+            {% else %}
+              <div class="col--span-4 label sm:hidden lg:visible">
+                {% if scorer.team.tla == my_team %}
+                  <div class="rounded--xsmall px--1 bg--gray-20 text--white">
+                    {{ scorer.player.name }}
+                  </div>  
+                {% else %}
+                  {{ scorer.player.name }}
+                {% endif %}
+              </div>
+              <div class="col--span-4 label sm:hidden lg:visible">{{ scorer.team.name }}</div>
+              <div class="col--span-2 label sm:hidden lg:visible">{{ scorer.goals }}</div>
+            {% endif %}
+          {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="title_bar">
+  <span class="title">{{ trmnl.plugin_settings.instance_name }}</span>
+  <span class="instance">{{ trmnl.system.timestamp_utc | plus: trmnl.user.utc_offset | date: "%d.%m.%y %H:%M" }}</span>
+</div>

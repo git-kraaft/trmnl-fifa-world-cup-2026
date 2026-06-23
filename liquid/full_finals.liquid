@@ -5,7 +5,7 @@
 {% assign start_date = IDX_0.season.startDate | date: "%s" %}
 {% assign difference_seconds = start_date | minus: date_1 %}
 {% assign days_difference = difference_seconds | plus: 86399 | divided_by: 86400 %}
-{% if days_difference > 1%}
+{% if days_difference > 1 %}
   {% assign match_day = "World Cup starts in " | append: days_difference | append: " days..." %}
 {% elsif days_difference == 1 %}
   {% assign match_day = "World Cup starts in " | append: days_difference | append: " day..." %}
@@ -22,26 +22,58 @@
       {% endif %}
       {% assign selected_table = group.table %}
     {% endif %}
-  {% endfor%}
-{% endfor %}
-
-{% for match in IDX_1.matches %}
-  {% if match.stage != "GROUP_STAGE" %}
-    {% if match.homeTeam.tla == my_team || match.awayTeam.tla == my_team %}
-      {% assign my_next_finals_match = match %}
-    {% endif %}
-  {% endif %}
-
-
+  {% endfor %}
 {% endfor %}
 {% assign sorted_table = selected_table | sort: "position" %}
 {% assign group_id = group_name | upcase | replace: " ", "_" %}
 {% assign max_matches = 3 %}
 
+<!-- BRACKETS -->
+{% for match in IDX_1.matches %}
+  {% if match.homeTeam.tla == my_team or match.awayTeam.tla == my_team %}
+    {% assign stage = match.stage %}
+    {% if stage == "LAST_32" %}
+      {% assign team_count = 32 %}
+      {% assign stage_name = "Round of 32" %}
+    {% elsif stage == "LAST_16" %}
+      {% assign team_count = 16 %}
+      {% assign stage_name = "Round of 16" %}
+    {% elsif stage == "QUARTER_FINALS" %}
+      {% assign team_count = 8 %}
+      {% assign stage_name = "Quarter Final" %}
+    {% elsif stage == "SEMI_FINALS" %}
+      {% assign team_count = 4 %}
+      {% assign stage_name = "Semi Final" %}
+    {% elsif stage == "THIRD_PLACE" %}
+      {% assign team_count = 2 %}
+      {% assign stage_name = "Play-off for third place" %}
+    {% elsif stage == "FINAL" %}
+      {% assign team_count = 2 %}
+    {% elsif stage == "GROUP_STAGE" %}
+      {% assign team_count = 0 %}
+    {% else %}
+      {% assign team_count = 2 %}
+    {% endif %}
+  {% endif %}
+{% endfor %}
+
+<!-- TESTING ONLY -- REMOVE -->
+{% assign stage = "LAST_32" %}
+{% assign team_count = 32 %}
+<!-- END TESTING -->
+
+{% if team_count == nil %}
+  <div class="label--small">Unfortunately your favorite team is no longer part of the tournament...</div>
+
+{% endif %}
+
 <div class="layout layout--top">
-  <div class="columns">
-    <div class="column" data-overflow="true" data-overflow-counter="true">
-      {% if group_name != "" %}
+
+
+  {% if team_count == 0 %}
+
+    <div class="columns">
+      <div class="column" data-overflow="true" data-overflow-counter="true">
         <div class="grid grid--cols-7">
           <div class="col--span-7 border--h-3 title">{{ group_name }}</div>
           <div class="col--span-7 label">&nbsp;</div>
@@ -50,9 +82,9 @@
           <div class="col--span-3 label--small">COUNTRY</div>
           <div class="col label--small">POINTS</div>
           <div class="col label--small">GAMES</div>
-    
+
           {% for row in sorted_table %}
-            {% assign crest_url = row.team.crest | replace: url_base_orig,img_url_base %}
+            {% assign crest_url = row.team.crest | replace: url_base_orig, img_url_base %}
             <div class="col label layout--center outline">{{ row.position }}</div>
             <div class="col">
               <img class="image image-dither h--8" src="{{ crest_url }}">
@@ -60,7 +92,7 @@
             <div class="col--span-3 label">{{ row.team.name }}</div>
             <div class="col label layout--center">{{ row.points }}</div>
             <div class="col label layout--center">{{ row.playedGames }}</div>
-  
+
             <div class="col--span-2 label--small"></div>
             <div class="col label--small">won {{ row.won }}</div>
             <div class="col label--small">draw {{ row.draw }}</div>
@@ -68,23 +100,19 @@
             <div class="col--span-2 label--small">goal difference {{ row.goalDifference }}</div>
             <div class="col--span-7 label--small"></div>
           {% endfor %}
-  
+
         </div>
-      {% elsif "" != "" %}
 
-      {% else %}
-        
-          <div class="label--small">Unfortunately your favorite team is longer part of the tournament...</div>
-      {% endif %}
+
+      </div>
     </div>
-  </div>
 
-  <div class="divider--v"></div>
+    <div class="divider--v"></div>
 
-  <div class="columns">
-    <div class="column" data-overflow="true" data-overflow-counter="true">
-      <div class="grid grid--cols-10">
-        <div class="col--span-10 border--h-3 title">{{ match_day }}</div>
+    <div class="columns">
+      <div class="column" data-overflow="true" data-overflow-counter="true">
+        <div class="grid grid--cols-10">
+          <div class="col--span-10 border--h-3 title">{{ match_day }}</div>
           <div class="col--span-10 label"></div>
           <div class="col--span-2 label--small">DATE</div>
           <div class="col--span-3 label--small">HOME TEAM</div>
@@ -94,9 +122,10 @@
           {% for match in IDX_1.matches %}
             {% if match.group == group_id %}
               {% assign match_count = match_count | plus: 1 %}
-              {% assign crest_url_h = match.homeTeam.crest | replace: url_base_orig,img_url_base %}
-              {% assign crest_url_a = match.awayTeam.crest | replace: url_base_orig,img_url_base %}
-              <div class="col--span-2 label">{{ match.utcDate | date: "%s" | plus: trmnl.user.utc_offset | date: "%d.%m.%y %H:%M" }}</div>
+              {% assign crest_url_h = match.homeTeam.crest | replace: url_base_orig, img_url_base %}
+              {% assign crest_url_a = match.awayTeam.crest | replace: url_base_orig, img_url_base %}
+              <div
+                  class="col--span-2 label">{{ match.utcDate | date: "%s" | plus: trmnl.user.utc_offset | date: "%d.%m.%y %H:%M" }}</div>
               <div class="col--span-3 label">
                 {{ match.homeTeam.tla }}&nbsp;
                 <img class="image rounded image-dither h--8" src="{{ crest_url_h }}">
@@ -106,9 +135,11 @@
                 <img class="image rounded image-dither h--8" src="{{ crest_url_a }}">
               </div>
               {% if match.score.fullTime.home != nil %}
-                <div class="col--span-2 layout--center label">{{ match.score.fullTime.home }} : {{ match.score.fullTime.away }}</div>
+                <div class="col--span-2 layout--center label">{{ match.score.fullTime.home }}
+                  : {{ match.score.fullTime.away }}</div>
               {% elsif match.score.halfTime.home != nil %}
-                <div class="col--span-2 layout--center label">{{ match.score.halfTime.home }} : {{ match.score.halfTime.away }}</div>
+                <div class="col--span-2 layout--center label">{{ match.score.halfTime.home }}
+                  : {{ match.score.halfTime.away }}</div>
               {% else %}
                 <div class="col--span-2 layout--center label">-- : --</div>
               {% endif %}
@@ -136,7 +167,7 @@
               {% endif %}
             {% endif %}
           {% endfor %}
-          
+
           <div class="col--span-10 label">&nbsp;</div>
           <div class="col--span-10 border--h-3 title">Scorers</div>
           {% assign scorer_surplus = max_matches | minus: match_count %}
@@ -149,20 +180,20 @@
                 {% if scorer.team.tla == my_team %}
                   <div class="rounded--xsmall px--1 bg--gray-20 text--white">
                     {{ scorer.player.name }}
-                  </div>  
+                  </div>
                 {% else %}
                   {{ scorer.player.name }}
                 {% endif %}
               </div>
               <div class="col--span-4 label">{{ scorer.team.name }}</div>
               <div class="col--span-2 label">{{ scorer.goals }}</div>
-            <!-- TRMNLX only -->
+              <!-- TRMNLX only -->
             {% else %}
               <div class="col--span-4 label sm:hidden lg:visible">
                 {% if scorer.team.tla == my_team %}
                   <div class="rounded--xsmall px--1 bg--gray-20 text--white">
                     {{ scorer.player.name }}
-                  </div>  
+                  </div>
                 {% else %}
                   {{ scorer.player.name }}
                 {% endif %}
@@ -171,9 +202,91 @@
               <div class="col--span-2 label sm:hidden lg:visible">{{ scorer.goals }}</div>
             {% endif %}
           {% endfor %}
+        </div>
       </div>
     </div>
-  </div>
+
+  <!-- FINALS -->
+  {% else %}
+    <div class="columns">
+      <div class="column" data-overflow="true" data-overflow-counter="true">
+        <div class="grid grid--cols-5">
+          {% assign match_count = 0 %}
+          {% assign max_matches = team_count | divided_by: 4 %}
+          {% for match in IDX_1.matches %}
+            {% if match.stage == stage %}
+              {% assign match_count = match_count | plus: 1 %}
+              {% assign crest_url_h = match.homeTeam.crest | replace: url_base_orig, img_url_base %}
+              {% assign crest_url_a = match.awayTeam.crest | replace: url_base_orig, img_url_base %}
+              <div class="col--span-2 label--small">{{ match.utcDate | date: "%s" | plus: trmnl.user.utc_offset | date: "%d.%m.%y %H:%M" }}</div>
+              <div class="col--span-1 label">
+                {% if match.homeTeam.tla == my_team %}
+                  <div class="rounded--xsmall px--1 bg--gray-20 text--white">
+                    {{ match.homeTeam.tla }}&nbsp;
+                  </div>
+                {% else %}
+                  {{ match.homeTeam.tla }}&nbsp;
+                {% endif %}
+                <img class="image rounded image-dither h--8" src="{{ crest_url_h }}">
+              </div>
+              <div class="col--span-1 label">
+                {{ match.awayTeam.tla }}&nbsp;
+                <img class="image rounded image-dither h--8" src="{{ crest_url_a }}">
+              </div>
+              {% if match.score.fullTime.home != nil %}
+                <div class="col--span-1 layout--center label--small">{{ match.score.fullTime.home }}
+                  : {{ match.score.fullTime.away }}</div>
+              {% elsif match.score.halfTime.home != nil %}
+                <div class="col--span-1 layout--center label">{{ match.score.halfTime.home }}
+                  : {{ match.score.halfTime.away }}</div>
+              {% else %}
+                <div class="col--span-1 layout--center label">-- : --</div>
+              {% endif %}
+              {% if match_count == max_matches %}
+                {% break %}
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="divider--v"></div>
+
+    <div class="columns">
+      <div class="column" data-overflow="true" data-overflow-counter="true">
+        <div class="grid grid--cols-5">
+          {% assign match_count = 0 %}
+          {% for match in IDX_1.matches %}
+            {% if match.stage == stage %}
+              {% assign match_count = match_count | plus: 1 %}
+              {% if match_count > max_matches %}
+                {% assign crest_url_h = match.homeTeam.crest | replace: url_base_orig, img_url_base %}
+                {% assign crest_url_a = match.awayTeam.crest | replace: url_base_orig, img_url_base %}
+                <div
+                    class="col--span-2 label--small">{{ match.utcDate | date: "%s" | plus: trmnl.user.utc_offset | date: "%d.%m.%y %H:%M" }}</div>
+                <div class="col--span-1 label">
+                  {{ match.homeTeam.tla }}&nbsp;
+                </div>
+                <div class="col--span-1 label">
+                  {{ match.awayTeam.tla }}&nbsp;
+                </div>
+                {% if match.score.fullTime.home != nil %}
+                  <div class="col--span-1 layout--center label--small">{{ match.score.fullTime.home }}
+                    : {{ match.score.fullTime.away }}</div>
+                {% elsif match.score.halfTime.home != nil %}
+                  <div class="col--span-1 layout--center label">{{ match.score.halfTime.home }}
+                    : {{ match.score.halfTime.away }}</div>
+                {% else %}
+                  <div class="col--span-1 layout--center label">-- : --</div>
+                {% endif %}
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
 </div>
 
 <div class="title_bar">

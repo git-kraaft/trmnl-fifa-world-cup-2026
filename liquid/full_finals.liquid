@@ -1,9 +1,16 @@
 {% assign url_base_orig = "crests.football-data.org" %}
 {% assign img_url_base = "www.zeugs.ch/d/cdn-wc2026" %}
 {% assign my_team = trmnl.plugin_settings.custom_fields_values.my_team | upcase %}
-{% assign date_1 = "now" | date: "%s" %}
+{% assign endDateGroup = "2026-06-29" | date: "%s" %}
+{% assign date32 = "2026-06-28" | date: "%s" %}
+{% assign date16 = "2026-07-04" | date: "%s" %}
+{% assign date8 = "2026-07-09" | date: "%s" %}
+{% assign date4 = "2026-07-14" | date: "%s" %}
+{% assign dateThird = "2026-07-18" | date: "%s" %}
+{% assign dateFinal = "2026-07-19" | date: "%s" %}
+{% assign today = "now" | date: "%s" %}
 {% assign start_date = IDX_0.season.startDate | date: "%s" %}
-{% assign difference_seconds = start_date | minus: date_1 %}
+{% assign difference_seconds = start_date | minus: today %}
 {% assign days_difference = difference_seconds | plus: 86399 | divided_by: 86400 %}
 {% if days_difference > 1 %}
   {% assign match_day = "World Cup starts in " | append: days_difference | append: " days..." %}
@@ -12,13 +19,13 @@
 {% else %}
   {% assign match_day = "Current match day: " | append: IDX_0.season.currentMatchday %}
 {% endif %}
+
+<!-- STANDINGS GROUP PHASE -->
 {% for group in IDX_0.standings %}
   {% for row in group.table %}
     {% if row.team.tla == my_team %}
       {% if group.group != "" %}
         {% assign group_name = group.group %}
-      {% else %}
-        {% assign finals = group.stage | replace: "_", " " %} %}
       {% endif %}
       {% assign selected_table = group.table %}
     {% endif %}
@@ -28,57 +35,53 @@
 {% assign group_id = group_name | upcase | replace: " ", "_" %}
 {% assign max_matches = 3 %}
 
-<!-- BRACKETS -->
-{% for match in IDX_1.matches %}
-  {% if match.homeTeam.tla == my_team or match.awayTeam.tla == my_team %}
-    {% assign stage = match.stage %}
-    {% if stage == "GROUP_STAGE" %}
-      {% assign team_count = 0 %}
-      {% break %}
-    {% elsif stage == "LAST_32" %}
-      {% assign team_count = 32 %}
-      {% assign stage_name = "Round of 32" %}
-      {% break %}
-    {% elsif stage == "LAST_16" %}
-      {% assign team_count = 16 %}
-      {% assign stage_name = "Round of 16" %}
-      {% break %}
-    {% elsif stage == "QUARTER_FINALS" %}
-      {% assign team_count = 8 %}
-      {% assign stage_name = "Quarter Final" %}
-      {% break %}
-    {% elsif stage == "SEMI_FINALS" %}
-      {% assign team_count = 4 %}
-      {% assign stage_name = "Semi Final" %}
-      {% break %}
-    {% elsif stage == "THIRD_PLACE" %}
-      {% assign team_count = 2 %}
-      {% assign stage_name = "Play-off for third place" %}
-      {% break %}
-    {% elsif stage == "FINAL" %}
-      {% assign team_count = 2 %}
-      {% assign stage_name = "Final" %}
-      {% break %}
-    {% else %}
-      {% assign team_count = 2 %}
+<!-- MATCHES GROUP PHASE -->
+{% assign team_count = 0 %}
+{% if today <= endDateGroup %}
+  {% for match in IDX_1.matches %}
+    {% if match.homeTeam.tla == my_team or match.awayTeam.tla == my_team %}
+      {% assign stage = match.stage %}
+      {% if stage == "GROUP_STAGE" %}
+        {% assign team_count = 48 %}
+        {% break %}
+      {% endif %}
     {% endif %}
-  {% endif %}
-{% endfor %}
-
-<!-- TESTING ONLY -- REMOVE -->
-{% assign stage = "LAST_32" %}
-{% assign team_count = 32 %}
-<!-- END TESTING -->
-
-{% if team_count == nil %}
-  <div class="label--small">Unfortunately your favorite team is no longer part of the tournament...</div>
-
+  {% endfor %}
 {% endif %}
 
-<div class="layout layout--top">
+<!-- BRACKETS -->
+{% if team_count == 0 %} <!-- favorite is out -->
+  {% if today >= dateFinal %}
+    {% assign team_count = 2 %}
+    {% assign stage = "FINAL" %}
+    {% assign stage_name = "Final" %}
+  {% elsif today >= dateThird %}
+    {% assign team_count = 2 %}
+    {% assign stage = "THIRD_PLACE" %}
+    {% assign stage_name = "Play-off for third place" %}
+  {% elsif today >= date4 %}
+    {% assign team_count = 4 %}
+    {% assign stage = "SEMI_FINALS" %}
+    {% assign stage_name = "Semi Finals" %}
+  {% elsif today >= date8 %}
+    {% assign team_count = 8 %}
+    {% assign stage = "QUARTER_FINALS" %}
+    {% assign stage_name = "Quarter Finals" %}
+  {% elsif today >= date16 %}
+    {% assign team_count = 16 %}
+    {% assign stage = "LAST_16" %}
+    {% assign stage_name = "Round of 16" %}
+  {% else %}
+    {% assign team_count = 32 %}
+    {% assign stage = "LAST_32" %}
+    {% assign stage_name = "Round of 32" %}
+  {% endif %}
+{% endif %}
 
-  {% if team_count == 0 %}
+<div class="layout layout--center-y">
 
+  <!-- GROUP PHASE -->
+  {% if team_count == 48 %}
     <div class="columns">
       <div class="column" data-overflow="true" data-overflow-counter="true">
         <div class="grid grid--cols-7">
@@ -215,6 +218,7 @@
 
     <!-- FINALS -->
   {% else %}
+    <!-- <div class="label">{{ my_team }} {{ team_count }} gourp_name {{ group_name }}</div> -->
     <div class="columns">
       <div class="column" data-overflow="true" data-overflow-counter="true">
         <div class="flex flex--col">

@@ -114,19 +114,22 @@
         <div class="grid grid--cols-4">
           <div class="col--span-4 border--h-3 title">{{ stage_name }}</div>
           {% assign max_matches = 5 %}
-          {% assign max_matches_lg = 7 %}
+          {% assign max_matches_lg = 8 %}
           {% assign match_count = 0 %}
           {% for i in (0..1) %}
+            {% assign stage_idx = 0 %}
             {% for match in IDX_1.matches %}
-
               {% if match.stage == stage %}
+                {% assign stage_idx = stage_idx | plus: 1 %}
                 {% assign is_my_team = false %}
                 {% if match.homeTeam.tla == my_team or match.awayTeam.tla == my_team %}
                   {% assign is_my_team = true %}
                 {% endif %}
                 <!-- Display my team first -->
                 {% if i == 0 and is_my_team == true %}
-                  {% assign match_count = match_count | plus: 1 %}
+                  {% if stage_idx <= max_matches %}
+                    {% assign match_count = match_count | plus: 1 %}
+                  {% endif %}
                   {% assign crest_url_h = match.homeTeam.crest | replace: url_base_orig, img_url_base %}
                   {% assign crest_url_a = match.awayTeam.crest | replace: url_base_orig, img_url_base %}
                   <div class="col--span-1 label--small layout--center-y label--filled">
@@ -192,29 +195,29 @@
               {% if match.homeTeam.tla == my_team or match.awayTeam.tla == my_team %}
                 {% assign is_my_team = true %}
               {% endif %}
-              {% if match_count >= max_matches and is_my_team == false %}
+              {% if match_count > max_matches and is_my_team == false %}
                 {% assign match_count = match_count | plus: 1 %}
                 {% assign crest_url_h = match.homeTeam.crest | replace: url_base_orig, img_url_base %}
                 {% assign crest_url_a = match.awayTeam.crest | replace: url_base_orig, img_url_base %}
                 <div
                     class="col--span-1 layout--center-y label--small sm:hidden lg:visible">{{ match.utcDate | date: "%s" | plus: trmnl.user.utc_offset | date: "%d.%m.%y %H:%M" }}
                 </div>
-                <div class="col--span-1 layout--center-y label">
+                <div class="col--span-1 layout--center-y label sm:hidden lg:visible">
                   {{ match.homeTeam.tla }}&nbsp;
                   <img class="image rounded image-dither h--6" src="{{ crest_url_h }}">
                 </div>
-                <div class="col--span-1 layout--center-y label">
+                <div class="col--span-1 layout--center-y label sm:hidden lg:visible">
                   {{ match.awayTeam.tla }}&nbsp;
                   <img class="image rounded image-dither h--6" src="{{ crest_url_a }}">
                 </div>
                 {% if match.score.fullTime.home != nil %}
-                  <div class="col--span-1 layout--center label">{{ match.score.fullTime.home }}
+                  <div class="col--span-1 layout--center label sm:hidden lg:visible">{{ match.score.fullTime.home }}
                     : {{ match.score.fullTime.away }}</div>
                 {% elsif match.score.halfTime.home != nil %}
-                  <div class="col--span-1 layout--center label">{{ match.score.halfTime.home }}
+                  <div class="col--span-1 layout--center label sm:hidden lg:visible">{{ match.score.halfTime.home }}
                     : {{ match.score.halfTime.away }}</div>
                 {% else %}
-                  <div class="col--span-1 layout--center label">-- : --</div>
+                  <div class="col--span-1 layout--center label sm:hidden lg:visible">-- : --</div>
                 {% endif %}
                 {% if match_count == max_matches %}
                   {% break %}

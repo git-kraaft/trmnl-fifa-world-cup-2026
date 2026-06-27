@@ -183,23 +183,22 @@
               {% assign crest_url_h = match.homeTeam.crest | replace: url_base_orig, img_url_base %}
               {% assign crest_url_a = match.awayTeam.crest | replace: url_base_orig, img_url_base %}
               {% if match.homeTeam.tla == my_team or match.awayTeam.tla == my_team %}
-                <div class="col--span-2 label--small label--filled">
+                <div class="col--span-2 label--small layout--center-y label--filled">
               {% else %}
-                <div class="col--span-2 label--small">
+                <div class="col--span-2 label--small layout--center-y">
               {% endif %}
               {{ match.utcDate | date: "%s" | plus: trmnl.user.utc_offset | date: "%d.%m.%y %H:%M" }}
-
-            </div>
-              <div class="col--span-1 {{ class_label }}">
-                {{ match.homeTeam.tla }}&nbsp;
+              </div>
+              <div class="col--span-1 layout--center-y {{ class_label }}">
+                {{ match.homeTeam.tla }}
                 {% if team_count <= 8 %}
                   &nbsp;<img class="image rounded image-dither h--8" src="{{ crest_url_h }}">
                 {% else %}
                   &nbsp;<img class="image rounded image-dither h--8 sm:hidden lg:visible" src="{{ crest_url_h}}">
                 {% endif %}
               </div>
-              <div class="col--span-1 {{ class_label }}">
-                {{ match.awayTeam.tla }}&nbsp;
+              <div class="col--span-1 layout--center-y {{ class_label }}">
+                {{ match.awayTeam.tla }}
                 {% if team_count <= 8 %}
                   &nbsp;<img class="image rounded image-dither h--8" src="{{ crest_url_a}}">
                 {% else %}
